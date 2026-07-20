@@ -1,6 +1,9 @@
 import { Fraunces, Manrope } from 'next/font/google';
 import './globals.css';
 import Providers from '@/components/Providers';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import SageWidget from '@/components/SageWidget';
 
 const fraunces = Fraunces({
   subsets: ['latin'],
@@ -24,14 +27,15 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${fraunces.variable} ${manrope.variable}`}>
       <body className="antialiased bg-[var(--background)] text-[var(--foreground)]">
         <Providers>
-          {/* <Navbar /> */}
+          <Navbar />
           <main className="min-h-screen">
             {children}
           </main>
-          {/* <Footer /> */}
-          {/* <SageWidget /> */}
+          <Footer />
+          <SageWidget />
         </Providers>
       </body>
     </html>
   );
 }
+
