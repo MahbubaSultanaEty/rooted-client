@@ -37,6 +37,7 @@ export default function PropertyCard({ property, aiMatchScore = null }) {
         <img 
           src={displayImage} 
           alt={property.title} 
+          onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         {/* Status Badge */}

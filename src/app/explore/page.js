@@ -78,13 +78,32 @@ const MOCK_PROPERTIES = [
   },
 ];
 
+import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import PropertyCard from '@/components/PropertyCard';
+import SkeletonCard from '@/components/SkeletonCard';
+import { Search, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+
+const SORT_OPTIONS = [
+  { label: 'Newest', value: '-createdAt' },
+  { label: 'Price: Low–High', value: 'price' },
+  { label: 'Price: High–Low', value: '-price' },
+  { label: 'Most Viewed', value: '-stats.views' },
+  { label: 'Top Rated', value: '-stats.avgRating' },
+];
+
+const PROPERTY_TYPES = ['apartment', 'house', 'villa', 'office', 'plot', 'shop'];
+const CITIES = ['Dhaka', 'Chittagong', 'Sylhet', 'Rajshahi', 'Khulna', 'Barisal'];
+const BEDROOMS = [1, 2, 3, 4, '5+'];
+
 export default function ExplorePage() {
   const searchParams = useSearchParams();
-  const [loading, setLoading] = useState(true);
-  const [properties, setProperties] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('newest');
+  const [sortBy, setSortBy] = useState('-createdAt');
+  const [page, setPage] = useState(1);
+  const limit = 9;
 
   const [filters, setFilters] = useState({
     city: searchParams.get('city') || '',
@@ -94,22 +113,48 @@ export default function ExplorePage() {
     bedrooms: '',
   });
 
-  // Simulate loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setProperties(MOCK_PROPERTIES);
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
+  const buildQueryParams = () => {
+    const params = new URLSearchParams();
+    if (searchQuery) params.append('search', searchQuery);
+    if (filters.city) params.append('city', filters.city);
+    if (filters.propertyType) params.append('propertyType', filters.propertyType);
+    if (filters.minPrice) params.append('minPrice', filters.minPrice);
+    if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
+    if (filters.bedrooms) {
+      if (filters.bedrooms === '5+') {
+        params.append('minBedrooms', '5');
+      } else {
+        params.append('bedrooms', filters.bedrooms);
+      }
+    }
+    params.append('sort', sortBy);
+    params.append('page', page);
+    params.append('limit', limit);
+    return params.toString();
+  };
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['properties', filters, searchQuery, sortBy, page],
+    queryFn: async () => {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/properties?${buildQueryParams()}`);
+      if (!res.ok) throw new Error('Network error');
+      return res.json();
+    },
+    keepPreviousData: true
+  });
+
+  const properties = data?.data || [];
+  const pagination = data?.pagination || { total: 0, pages: 1 };
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+    setPage(1); // Reset page on filter change
   };
 
   const clearFilters = () => {
     setFilters({ city: '', propertyType: '', minPrice: '', maxPrice: '', bedrooms: '' });
     setSearchQuery('');
+    setPage(1);
   };
 
   return (
@@ -225,31 +270,57 @@ export default function ExplorePage() {
             </div>
           </div>
 
-          {/* Results Grid */}
+            {/* Results Grid */}
           <div className="flex-1">
             <div className="flex justify-between items-center mb-6">
               <p className="text-brand-text/70 text-sm font-medium">
-                {loading ? 'Loading...' : `${properties.length} properties found`}
+                {isLoading ? 'Loading...' : `${pagination.total} properties found`}
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              {loading
+              {isLoading
                 ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
                 : properties.map(prop => <PropertyCard key={prop._id} property={prop} />)
               }
             </div>
 
-            {/* Pagination placeholder */}
-            {!loading && (
+            {!isLoading && properties.length === 0 && (
+              <div className="text-center py-20">
+                <h3 className="text-xl font-bold text-gray-400">No properties found.</h3>
+                <p className="text-gray-400 mt-2">Try adjusting your filters.</p>
+              </div>
+            )}
+
+            {/* Pagination */}
+            {!isLoading && pagination.pages > 1 && (
               <div className="flex justify-center items-center gap-2 mt-12">
-                <button className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-brand-text hover:border-brand-primary">← Prev</button>
-                {[1, 2, 3].map(n => (
-                  <button key={n} className={`w-10 h-10 rounded-lg text-sm font-semibold ${n === 1 ? 'bg-brand-primary text-white' : 'border border-gray-200 text-brand-text hover:border-brand-primary'}`}>
-                    {n}
-                  </button>
-                ))}
-                <button className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-brand-text hover:border-brand-primary">Next →</button>
+                <button 
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-brand-text hover:border-brand-primary disabled:opacity-50"
+                >
+                  ← Prev
+                </button>
+                {Array.from({ length: pagination.pages }).map((_, idx) => {
+                  const n = idx + 1;
+                  return (
+                    <button 
+                      key={n} 
+                      onClick={() => setPage(n)}
+                      className={`w-10 h-10 rounded-lg text-sm font-semibold ${n === page ? 'bg-brand-primary text-white' : 'border border-gray-200 text-brand-text hover:border-brand-primary'}`}
+                    >
+                      {n}
+                    </button>
+                  );
+                })}
+                <button 
+                  onClick={() => setPage(p => Math.min(pagination.pages, p + 1))}
+                  disabled={page === pagination.pages}
+                  className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-brand-text hover:border-brand-primary disabled:opacity-50"
+                >
+                  Next →
+                </button>
               </div>
             )}
           </div>

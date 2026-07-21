@@ -88,8 +88,13 @@ export default function PropertyDetailPage() {
 
         {/* Image Gallery */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-          <div className="relative h-80 lg:h-[450px] rounded-2xl overflow-hidden shadow-lg">
-            <img src={property.images[selectedImage]} alt={property.title} className="w-full h-full object-cover" />
+          <div className="relative h-80 lg:h-[450px] rounded-2xl overflow-hidden shadow-lg bg-gray-200">
+            <img 
+              src={property.images[selectedImage]} 
+              alt={property.title} 
+              onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'; }}
+              className="w-full h-full object-cover" 
+            />
             <div className="absolute top-4 left-4 flex gap-2">
               {property.aiTags.map((tag, i) => (
                 <span key={i} className="px-3 py-1 bg-brand-primary/90 text-white text-xs font-bold rounded-full backdrop-blur-sm">{tag}</span>
@@ -101,9 +106,14 @@ export default function PropertyDetailPage() {
               <div
                 key={idx}
                 onClick={() => setSelectedImage(idx + 1)}
-                className={`relative h-36 lg:h-[140px] rounded-xl overflow-hidden cursor-pointer border-2 transition-all ${selectedImage === idx + 1 ? 'border-brand-primary shadow-lg' : 'border-transparent hover:border-brand-primary/50'}`}
+                className={`relative h-36 lg:h-[140px] rounded-xl overflow-hidden cursor-pointer border-2 transition-all bg-gray-200 ${selectedImage === idx + 1 ? 'border-brand-primary shadow-lg' : 'border-transparent hover:border-brand-primary/50'}`}
               >
-                <img src={img} alt={`View ${idx + 2}`} className="w-full h-full object-cover" />
+                <img 
+                  src={img} 
+                  alt={`View ${idx + 2}`} 
+                  onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'; }}
+                  className="w-full h-full object-cover" 
+                />
               </div>
             ))}
           </div>
