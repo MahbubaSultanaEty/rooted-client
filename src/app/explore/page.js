@@ -25,7 +25,7 @@ export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('-createdAt');
   const [page, setPage] = useState(1);
-  const limit = 9;
+  const limit = 6; // Set to 6 so pagination UI is visible with 8 properties
 
   const [filters, setFilters] = useState({
     city: searchParams.get('city') || '',
