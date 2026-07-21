@@ -21,7 +21,7 @@ const steps = [
     title: "Chat & Refine",
     description: "Have a natural conversation with Sage. Describe your dream home in plain language, and watch Sage curate matches in real time.",
     icon: MessageSquare,
-    image: "https://images.unsplash.com/photo-1600607687644-aac4c15cecb1?w=600&q=80",
+    image: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=600&q=80",
   },
   {
     id: 4,

@@ -6,7 +6,7 @@ const team = [
     name: 'Mahbuba Sultana Ety',
     role: 'Founder & Developer',
     bio: 'Full-stack developer passionate about building AI-powered solutions for real-world problems.',
-    image: 'https://i.ibb.co/ymk7s4ht/github-profile-pic.jpg',
+    image: 'https://i.ibb.co/fzmWTdNh/Chat-GPT-Image-Jul-21-2026-05-19-34-PM.png',
   },
   {
     name: 'Sage AI',
