@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signOut } from '@/lib/auth-client';
-import { User, Mail, ShieldCheck, LogOut, LoaderCircle, Home, CalendarDays } from 'lucide-react';
+import { User, Mail, ShieldCheck, LogOut, LoaderCircle, Home, CalendarDays, Bookmark } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 
@@ -147,6 +147,20 @@ export default function ProfilePage() {
             <LogOut className="w-5 h-5" />
             {loggingOut ? 'Logging out...' : 'Logout'}
           </button>
+        </div>
+
+        {/* Saved Properties (Minimal Mock) */}
+        <div className="glass-card p-6 bg-white/80 mt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Bookmark className="w-5 h-5 text-brand-primary" />
+            <h3 className="font-heading font-bold text-brand-text">Saved Properties</h3>
+          </div>
+          <div className="text-center py-6 bg-brand-bg rounded-xl border border-dashed border-gray-200">
+            <p className="text-gray-500 text-sm">You haven't saved any properties yet.</p>
+            <Link href="/explore" className="text-brand-primary text-sm font-semibold hover:underline mt-2 inline-block">
+              Explore Homes
+            </Link>
+          </div>
         </div>
       </div>
     </div>

@@ -227,6 +227,11 @@ export default function PropertyDetailPage() {
                 <button className="w-full py-3.5 bg-brand-accent text-white font-bold rounded-xl hover:bg-brand-accent/90 transition-all shadow-md flex items-center justify-center gap-2">
                   <Send className="w-4 h-4" /> Contact Agent
                 </button>
+                <div className="text-center">
+                  <a href={`mailto:${property.listedBy?.email || 'agent@rooted.com'}`} className="text-xs text-brand-primary font-medium hover:underline">
+                    {property.listedBy?.email || 'agent@rooted.com'}
+                  </a>
+                </div>
                 <button
                   onClick={() => setIsSaved(!isSaved)}
                   className={`w-full py-3.5 font-bold rounded-xl transition-all flex items-center justify-center gap-2 border ${isSaved ? 'bg-brand-primary text-white border-brand-primary' : 'bg-white text-brand-text border-gray-200 hover:border-brand-primary'}`}
@@ -238,7 +243,7 @@ export default function PropertyDetailPage() {
 
               <div className="border-t border-gray-100 pt-4">
                 <p className="text-sm text-gray-500 mb-2">Listed by</p>
-                <p className="font-bold text-brand-text">{property.listedBy.name}</p>
+                <p className="font-bold text-brand-text">{property.listedBy?.name || 'Agent Rahman'}</p>
               </div>
             </div>
           </div>

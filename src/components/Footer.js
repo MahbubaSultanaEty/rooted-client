@@ -11,7 +11,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="col-span-1 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <Leaf className="w-6 h-6 text-brand-accent" />
+              <img src="/logo.png" alt="Rooted Logo" className="w-8 h-8 object-contain" />
               <span className="font-heading text-2xl font-bold tracking-tight">
                 Rooted
               </span>
