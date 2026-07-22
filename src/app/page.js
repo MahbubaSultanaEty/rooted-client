@@ -3,6 +3,7 @@ import HowItWorks from '@/components/landing/HowItWorks';
 import Stats from '@/components/landing/Stats';
 import SagePreview from '@/components/landing/SagePreview';
 import PropertyTypes from '@/components/landing/PropertyTypes';
+import FeaturedCities from '@/components/landing/FeaturedCities';
 import Testimonials from '@/components/landing/Testimonials';
 import CTA from '@/components/landing/CTA';
 
@@ -13,6 +14,7 @@ export default function Home() {
       <HowItWorks />
       <Stats />
       <SagePreview />
+      <FeaturedCities />
       <PropertyTypes />
       <Testimonials />
       <CTA />

@@ -13,7 +13,7 @@ const steps = [
     id: 2,
     title: "Let Sage Nurture It",
     description: "Our AI assistant learns your preferences and finds hidden gems you might have missed.",
-    image: "https://images.unsplash.com/photo-1600607687644-aac4c15cecb1?w=500&q=80"
+    image: "https://i.ibb.co/fzmWTdNh/Chat-GPT-Image-Jul-21-2026-05-19-34-PM.png"
   },
   {
     id: 3,
