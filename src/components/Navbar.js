@@ -2,14 +2,28 @@
 
 import Link from 'next/link';
 import { useSession, signOut } from '@/lib/auth-client';
-import { LogOut, PlusCircle, User as UserIcon, Menu, X } from 'lucide-react';
+import { LogOut, PlusCircle, User as UserIcon, Menu, X, Shield } from 'lucide-react';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function Navbar() {
   const { data: session, isPending } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+
+  const handleLogout = () => {
+    signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          toast.success('Logged out successfully!');
+          setTimeout(() => { window.location.href = '/'; }, 500);
+        },
+      },
+    });
+  };
+
+  const isAdmin = session?.user?.role === 'admin';
 
   return (
     <nav className="sticky top-0 z-50 bg-[var(--background)]/90 backdrop-blur-md border-b border-brand-primary/10">
@@ -42,17 +56,22 @@ export default function Navbar() {
                 <Link href="/items/manage" className="text-sm font-semibold text-brand-text hover:text-brand-accent transition-colors">
                   My Listings
                 </Link>
+                {isAdmin && (
+                  <Link href="/admin" className="flex items-center gap-1 text-sm font-semibold text-amber-600 hover:text-amber-700 transition-colors">
+                    <Shield className="w-4 h-4" /> Dashboard
+                  </Link>
+                )}
                 
                 <div className="flex items-center gap-3 pl-4 border-l border-gray-300">
-                  <div className="w-8 h-8 rounded-full bg-brand-primary/10 flex items-center justify-center overflow-hidden">
+                  <Link href="/profile" className="w-8 h-8 rounded-full bg-brand-primary/10 flex items-center justify-center overflow-hidden hover:ring-2 ring-brand-primary/30 transition-all">
                     {session.user.image ? (
                       <img src={session.user.image} alt={session.user.name} className="w-full h-full object-cover" />
                     ) : (
                       <UserIcon className="w-4 h-4 text-brand-primary" />
                     )}
-                  </div>
+                  </Link>
                   <button 
-                    onClick={() => signOut({ fetchOptions: { onSuccess: () => window.location.href = '/' } })}
+                    onClick={handleLogout}
                     className="text-gray-500 hover:text-red-500 transition-colors"
                     title="Sign Out"
                   >
@@ -93,8 +112,12 @@ export default function Navbar() {
               <>
                 <Link href="/items/add" onClick={toggleMenu} className="block py-2 text-brand-primary font-semibold">Add Property</Link>
                 <Link href="/items/manage" onClick={toggleMenu} className="block py-2">My Listings</Link>
+                <Link href="/profile" onClick={toggleMenu} className="block py-2">Profile</Link>
+                {isAdmin && (
+                  <Link href="/admin" onClick={toggleMenu} className="block py-2 text-amber-600 font-semibold">Admin Dashboard</Link>
+                )}
                 <button 
-                  onClick={() => signOut({ fetchOptions: { onSuccess: () => window.location.href = '/' } })}
+                  onClick={() => { toggleMenu(); handleLogout(); }}
                   className="block py-2 text-red-500 text-left w-full"
                 >
                   Sign Out

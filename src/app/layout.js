@@ -4,6 +4,7 @@ import Providers from '@/components/Providers';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SageWidget from '@/components/SageWidget';
+import { Toaster } from 'react-hot-toast';
 
 const fraunces = Fraunces({
   subsets: ['latin'],
@@ -27,6 +28,7 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${fraunces.variable} ${manrope.variable}`}>
       <body className="antialiased bg-[var(--background)] text-[var(--foreground)]">
         <Providers>
+          <Toaster position="top-center" />
           <Navbar />
           <main className="min-h-screen">
             {children}
