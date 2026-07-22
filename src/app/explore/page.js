@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import PropertyCard from '@/components/PropertyCard';
 import SkeletonCard from '@/components/SkeletonCard';
 import { Search, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
@@ -20,24 +20,62 @@ const CITIES = ['Dhaka', 'Chittagong', 'Sylhet', 'Rajshahi', 'Khulna', 'Barisal'
 const BEDROOMS = [1, 2, 3, 4, '5+'];
 
 export default function ExplorePage() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+  
   const [showFilters, setShowFilters] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('-createdAt');
-  const [page, setPage] = useState(1);
-  const limit = 6; // Set to 6 so pagination UI is visible with 8 properties
-
-  const [filters, setFilters] = useState({
+  const [localSearch, setLocalSearch] = useState(searchParams.get('search') || '');
+  
+  const limit = 6; 
+  
+  // Derive state from URL
+  const filters = {
     city: searchParams.get('city') || '',
-    propertyType: searchParams.get('type') || '',
-    minPrice: '',
-    maxPrice: '',
-    bedrooms: '',
-  });
+    propertyType: searchParams.get('propertyType') || searchParams.get('type') || '',
+    minPrice: searchParams.get('minPrice') || '',
+    maxPrice: searchParams.get('maxPrice') || '',
+    bedrooms: searchParams.get('bedrooms') || '',
+    sort: searchParams.get('sort') || '-createdAt',
+    page: parseInt(searchParams.get('page')) || 1,
+    search: searchParams.get('search') || ''
+  };
 
-  const buildQueryParams = () => {
+  const updateQuery = (updates) => {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === '' || value === null) {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    });
+    
+    // Reset page to 1 if filters change, unless page itself is being updated
+    if (!('page' in updates)) {
+      params.set('page', '1');
+    }
+    
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handleFilterChange = (key, value) => {
+    updateQuery({ [key]: value });
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    updateQuery({ search: localSearch });
+  };
+
+  const clearFilters = () => {
+    router.push(pathname);
+    setLocalSearch('');
+  };
+
+  const buildApiUrl = () => {
     const params = new URLSearchParams();
-    if (searchQuery) params.append('search', searchQuery);
+    if (filters.search) params.append('search', filters.search);
     if (filters.city) params.append('city', filters.city);
     if (filters.propertyType) params.append('propertyType', filters.propertyType);
     if (filters.minPrice) params.append('minPrice', filters.minPrice);
@@ -49,16 +87,16 @@ export default function ExplorePage() {
         params.append('bedrooms', filters.bedrooms);
       }
     }
-    params.append('sort', sortBy);
-    params.append('page', page);
+    params.append('sort', filters.sort);
+    params.append('page', filters.page);
     params.append('limit', limit);
-    return params.toString();
+    return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/properties?${params.toString()}`;
   };
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['properties', filters, searchQuery, sortBy, page],
+    queryKey: ['properties', filters],
     queryFn: async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/properties?${buildQueryParams()}`);
+      const res = await fetch(buildApiUrl());
       if (!res.ok) throw new Error('Network error');
       return res.json();
     },
@@ -68,34 +106,24 @@ export default function ExplorePage() {
   const properties = data?.data || [];
   const pagination = data?.pagination || { total: 0, pages: 1 };
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-    setPage(1); // Reset page on filter change
-  };
-
-  const clearFilters = () => {
-    setFilters({ city: '', propertyType: '', minPrice: '', maxPrice: '', bedrooms: '' });
-    setSearchQuery('');
-    setPage(1);
-  };
-
   return (
     <div className="min-h-screen bg-brand-bg">
       {/* Search Bar */}
       <div className="sticky top-16 z-30 bg-white/80 backdrop-blur-xl border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex gap-3 items-center">
+          <form onSubmit={handleSearchSubmit} className="flex gap-3 items-center">
             <div className="flex-1 flex items-center gap-3 bg-brand-bg rounded-xl px-4 py-3 border border-gray-100 focus-within:ring-2 ring-brand-primary/20">
               <Search className="w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
                 placeholder="Search by title, area, city..."
                 className="bg-transparent border-none outline-none w-full text-brand-text placeholder-gray-400"
               />
             </div>
             <button
+              type="button"
               onClick={() => setShowFilters(!showFilters)}
               className={`px-4 py-3 rounded-xl border font-semibold text-sm flex items-center gap-2 transition-all ${showFilters ? 'bg-brand-primary text-white border-brand-primary' : 'bg-white border-gray-200 text-brand-text hover:border-brand-primary'}`}
             >
@@ -103,15 +131,15 @@ export default function ExplorePage() {
               Filters
             </button>
             <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
+              value={filters.sort}
+              onChange={(e) => handleFilterChange('sort', e.target.value)}
               className="px-4 py-3 rounded-xl border border-gray-200 bg-white text-brand-text text-sm font-medium cursor-pointer hidden md:block"
             >
               {SORT_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
-          </div>
+          </form>
         </div>
       </div>
 
@@ -218,8 +246,8 @@ export default function ExplorePage() {
             {!isLoading && pagination.pages > 1 && (
               <div className="flex justify-center items-center gap-2 mt-12">
                 <button 
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
+                  onClick={() => updateQuery({ page: Math.max(1, filters.page - 1) })}
+                  disabled={filters.page === 1}
                   className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-brand-text hover:border-brand-primary disabled:opacity-50"
                 >
                   ← Prev
@@ -229,16 +257,16 @@ export default function ExplorePage() {
                   return (
                     <button 
                       key={n} 
-                      onClick={() => setPage(n)}
-                      className={`w-10 h-10 rounded-lg text-sm font-semibold ${n === page ? 'bg-brand-primary text-white' : 'border border-gray-200 text-brand-text hover:border-brand-primary'}`}
+                      onClick={() => updateQuery({ page: n })}
+                      className={`w-10 h-10 rounded-lg text-sm font-semibold ${n === filters.page ? 'bg-brand-primary text-white' : 'border border-gray-200 text-brand-text hover:border-brand-primary'}`}
                     >
                       {n}
                     </button>
                   );
                 })}
                 <button 
-                  onClick={() => setPage(p => Math.min(pagination.pages, p + 1))}
-                  disabled={page === pagination.pages}
+                  onClick={() => updateQuery({ page: Math.min(pagination.pages, filters.page + 1) })}
+                  disabled={filters.page === pagination.pages}
                   className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-brand-text hover:border-brand-primary disabled:opacity-50"
                 >
                   Next →
