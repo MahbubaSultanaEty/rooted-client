@@ -4,55 +4,8 @@ import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import PropertyCard from '@/components/PropertyCard';
-import { MapPin, Bed, Bath, Maximize, CalendarDays, Compass, Car, Star, Send, Leaf, ChevronLeft, Bookmark } from 'lucide-react';
-
-// Mock property detail
-const MOCK_PROPERTY = {
-  _id: '1',
-  title: 'Sunny 2-Bed Apartment with Lake View',
-  slug: 'sunny-2-bed-lake-view',
-  shortDescription: 'A beautifully designed apartment overlooking Gulshan Lake with modern amenities.',
-  description: 'This stunning 2-bedroom apartment sits on the 12th floor of a premium residential tower in Gulshan 2, offering breathtaking views of Gulshan Lake. The spacious living area features floor-to-ceiling windows that flood the space with natural light. The modern kitchen comes fully equipped with premium appliances. Both bedrooms are generously sized with built-in closets, and the master bedroom includes an en-suite bathroom. Building amenities include a rooftop pool, fitness center, and 24/7 security.',
-  price: 45000,
-  priceUnit: 'per_month',
-  isNegotiable: true,
-  listingType: 'rent',
-  propertyType: 'apartment',
-  status: 'active',
-  location: {
-    address: 'Tower 7, Road 35, Gulshan 2',
-    area: 'Gulshan 2',
-    city: 'Dhaka',
-    division: 'Dhaka',
-    country: 'Bangladesh',
-  },
-  specs: {
-    size: 1200,
-    bedrooms: 2,
-    bathrooms: 2,
-    floors: 1,
-    floorNumber: 12,
-    parkingSpots: 1,
-    yearBuilt: 2022,
-    furnishing: 'semi-furnished',
-    facing: 'south',
-  },
-  amenities: {
-    lift: true, generator: true, security: true, cctv: true,
-    gym: true, pool: true, garden: false, rooftopAccess: true,
-    gasLine: true, waterSupply: true, internetReady: true, petFriendly: true,
-  },
-  images: [
-    'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80',
-    'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&q=80',
-    'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&q=80',
-    'https://images.unsplash.com/photo-1600607687644-aac4c15cecb1?w=600&q=80',
-  ],
-  aiTags: ['Lake View', 'Pet Friendly', 'Modern', 'Sunny'],
-  aiSummary: 'A premium 2-bedroom apartment with stunning lake views, modern design, and top-tier building amenities including pool and gym.',
-  stats: { views: 342, saves: 28, avgRating: 4.6, reviewCount: 12 },
-  listedBy: { name: 'Agent Rahman' },
-};
+import { useQuery } from '@tanstack/react-query';
+import { MapPin, Bed, Bath, Maximize, CalendarDays, Compass, Car, Star, Send, Leaf, ChevronLeft, Bookmark, LoaderCircle } from 'lucide-react';
 
 const MOCK_REVIEWS = [
   { _id: 'r1', userId: { name: 'Arif Mahmud' }, rating: 5, title: 'Excellent location', body: 'Perfect for families. The lake view is absolutely breathtaking, especially during sunset.', createdAt: '2026-06-15' },
@@ -67,11 +20,39 @@ const MOCK_RELATED = [
 
 export default function PropertyDetailPage() {
   const params = useParams();
-  const property = MOCK_PROPERTY;
+  const id = params.id;
   const [selectedImage, setSelectedImage] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
 
-  const amenityList = Object.entries(property.amenities).filter(([, v]) => v).map(([k]) => k);
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['property', id],
+    queryFn: async () => {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/properties/${id}`);
+      if (!res.ok) throw new Error('Network error');
+      return res.json();
+    }
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-brand-bg flex items-center justify-center">
+        <LoaderCircle className="w-8 h-8 animate-spin text-brand-primary" />
+      </div>
+    );
+  }
+
+  const property = data?.data;
+
+  if (isError || !property) {
+    return (
+      <div className="min-h-screen bg-brand-bg flex items-center justify-center flex-col gap-4">
+        <h1 className="font-heading text-3xl font-bold text-gray-500">Property Not Found</h1>
+        <Link href="/explore" className="text-brand-primary hover:underline">Go back to Explore</Link>
+      </div>
+    );
+  }
+
+  const amenityList = property.amenities ? Object.entries(property.amenities).filter(([, v]) => v).map(([k]) => k) : [];
 
   return (
     <div className="min-h-screen bg-brand-bg">
@@ -83,26 +64,26 @@ export default function PropertyDetailPage() {
           <span>/</span>
           <Link href="/explore" className="hover:text-brand-primary">Explore</Link>
           <span>/</span>
-          <span className="text-brand-text font-medium truncate">{property.title}</span>
+          <span className="text-brand-text font-medium truncate">{property?.title}</span>
         </div>
 
         {/* Image Gallery */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
           <div className="relative h-80 lg:h-[450px] rounded-2xl overflow-hidden shadow-lg bg-gray-200">
             <img 
-              src={property.images[selectedImage]} 
-              alt={property.title} 
+              src={property?.images?.[selectedImage] || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'} 
+              alt={property?.title} 
               onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'; }}
               className="w-full h-full object-cover" 
             />
             <div className="absolute top-4 left-4 flex gap-2">
-              {property.aiTags.map((tag, i) => (
+              {property?.aiTags?.map((tag, i) => (
                 <span key={i} className="px-3 py-1 bg-brand-primary/90 text-white text-xs font-bold rounded-full backdrop-blur-sm">{tag}</span>
               ))}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            {property.images.slice(1).map((img, idx) => (
+            {property?.images?.slice(1).map((img, idx) => (
               <div
                 key={idx}
                 onClick={() => setSelectedImage(idx + 1)}
@@ -124,14 +105,14 @@ export default function PropertyDetailPage() {
           
           {/* Left — Main Details */}
           <div className="flex-1">
-            <h1 className="font-heading text-3xl md:text-4xl font-bold text-brand-text mb-3">{property.title}</h1>
+            <h1 className="font-heading text-3xl md:text-4xl font-bold text-brand-text mb-3">{property?.title}</h1>
             <p className="flex items-center gap-2 text-gray-500 text-lg mb-6">
               <MapPin className="w-5 h-5 text-brand-primary" />
-              {property.location.address}, {property.location.city}
+              {property?.location?.address || property?.location?.area}, {property?.location?.city}
             </p>
 
             {/* AI Summary */}
-            {property.aiSummary && (
+            {property?.aiSummary && (
               <div className="glass-card p-5 mb-8 bg-brand-primary/5 border-brand-primary/20">
                 <div className="flex items-center gap-2 mb-2 text-brand-primary">
                   <Leaf className="w-4 h-4" />
@@ -144,7 +125,7 @@ export default function PropertyDetailPage() {
             {/* Description */}
             <div className="mb-8">
               <h2 className="font-heading text-xl font-bold text-brand-text mb-4">About This Property</h2>
-              <p className="text-brand-text/70 leading-relaxed">{property.description}</p>
+              <p className="text-brand-text/70 leading-relaxed">{property?.description}</p>
             </div>
 
             {/* Specs Table */}
@@ -152,13 +133,13 @@ export default function PropertyDetailPage() {
               <h2 className="font-heading text-xl font-bold text-brand-text mb-4">Key Details</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {[
-                  { icon: Bed, label: 'Bedrooms', value: property.specs.bedrooms },
-                  { icon: Bath, label: 'Bathrooms', value: property.specs.bathrooms },
-                  { icon: Maximize, label: 'Area', value: `${property.specs.size} sqft` },
-                  { icon: CalendarDays, label: 'Year Built', value: property.specs.yearBuilt },
-                  { icon: Compass, label: 'Facing', value: property.specs.facing },
-                  { icon: Car, label: 'Parking', value: `${property.specs.parkingSpots} spot(s)` },
-                ].map((item, i) => (
+                  { icon: Bed, label: 'Bedrooms', value: property?.specs?.bedrooms },
+                  { icon: Bath, label: 'Bathrooms', value: property?.specs?.bathrooms },
+                  { icon: Maximize, label: 'Area', value: property?.specs?.size ? `${property.specs.size} sqft` : undefined },
+                  { icon: CalendarDays, label: 'Year Built', value: property?.specs?.yearBuilt },
+                  { icon: Compass, label: 'Facing', value: property?.specs?.facing },
+                  { icon: Car, label: 'Parking', value: property?.specs?.parkingSpots !== undefined ? `${property.specs.parkingSpots} spot(s)` : undefined },
+                ].filter(item => item.value !== undefined).map((item, i) => (
                   <div key={i} className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100">
                     <item.icon className="w-5 h-5 text-brand-primary flex-shrink-0" />
                     <div>
@@ -174,11 +155,11 @@ export default function PropertyDetailPage() {
             <div className="mb-8">
               <h2 className="font-heading text-xl font-bold text-brand-text mb-4">Amenities</h2>
               <div className="flex flex-wrap gap-3">
-                {amenityList.map((a, i) => (
+                {amenityList.length > 0 ? amenityList.map((a, i) => (
                   <span key={i} className="px-4 py-2 bg-white border border-gray-100 rounded-full text-sm font-medium text-brand-text capitalize">
                     ✓ {a.replace(/([A-Z])/g, ' $1').trim()}
                   </span>
-                ))}
+                )) : <span className="text-gray-400">No amenities listed.</span>}
               </div>
             </div>
 
@@ -186,11 +167,11 @@ export default function PropertyDetailPage() {
             <div>
               <div className="flex justify-between items-center mb-6">
                 <h2 className="font-heading text-xl font-bold text-brand-text">
-                  Reviews ({property.stats.reviewCount})
+                  Reviews ({property?.stats?.reviewCount || 0})
                 </h2>
                 <div className="flex items-center gap-1 text-brand-primary font-bold">
                   <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  {property.stats.avgRating}
+                  {property?.stats?.avgRating || 0}
                 </div>
               </div>
               <div className="space-y-4 mb-6">
@@ -217,10 +198,10 @@ export default function PropertyDetailPage() {
           <div className="lg:w-80 flex-shrink-0">
             <div className="glass-card p-6 sticky top-24 bg-white/80 shadow-xl">
               <p className="font-heading text-3xl font-bold text-brand-primary mb-1">
-                ৳{property.price.toLocaleString()}
+                ৳{property?.price?.toLocaleString()}
               </p>
               <p className="text-sm text-gray-500 mb-6">
-                {property.priceUnit === 'per_month' ? 'per month' : 'total'} {property.isNegotiable && <span className="text-brand-primary font-semibold">· Negotiable</span>}
+                {property?.priceUnit === 'per_month' ? 'per month' : 'total'} {property?.isNegotiable && <span className="text-brand-primary font-semibold">· Negotiable</span>}
               </p>
 
               <div className="space-y-3 mb-6">
