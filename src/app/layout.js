@@ -26,6 +26,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${fraunces.variable} ${manrope.variable}`}>
+      <head>
+        <link rel="icon" href="/logo.png" />
+      </head>
       <body className="antialiased bg-[var(--background)] text-[var(--foreground)]">
         <Providers>
           <Toaster position="top-center" />
