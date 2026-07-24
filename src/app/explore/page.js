@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import PropertyCard from '@/components/PropertyCard';
 import SkeletonCard from '@/components/SkeletonCard';
@@ -19,16 +19,16 @@ const PROPERTY_TYPES = ['apartment', 'house', 'villa', 'office', 'plot', 'shop']
 const CITIES = ['Dhaka', 'Chittagong', 'Sylhet', 'Rajshahi', 'Khulna', 'Barisal'];
 const BEDROOMS = [1, 2, 3, 4, '5+'];
 
-export default function ExplorePage() {
+function ExploreContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  
+
   const [showFilters, setShowFilters] = useState(false);
   const [localSearch, setLocalSearch] = useState(searchParams.get('search') || '');
-  
-  const limit = 6; 
-  
+
+  const limit = 6;
+
   // Derive state from URL
   const filters = {
     city: searchParams.get('city') || '',
@@ -50,12 +50,12 @@ export default function ExplorePage() {
         params.set(key, value);
       }
     });
-    
+
     // Reset page to 1 if filters change, unless page itself is being updated
     if (!('page' in updates)) {
       params.set('page', '1');
     }
-    
+
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -145,7 +145,7 @@ export default function ExplorePage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex gap-8">
-          
+
           {/* Filter Sidebar */}
           <div className={`${showFilters ? 'block' : 'hidden'} lg:block w-full lg:w-72 flex-shrink-0`}>
             <div className="glass-card p-6 sticky top-40 bg-white/80">
@@ -245,7 +245,7 @@ export default function ExplorePage() {
             {/* Pagination */}
             {!isLoading && pagination.pages > 1 && (
               <div className="flex justify-center items-center gap-2 mt-12">
-                <button 
+                <button
                   onClick={() => updateQuery({ page: Math.max(1, filters.page - 1) })}
                   disabled={filters.page === 1}
                   className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-brand-text hover:border-brand-primary disabled:opacity-50"
@@ -255,8 +255,8 @@ export default function ExplorePage() {
                 {Array.from({ length: pagination.pages }).map((_, idx) => {
                   const n = idx + 1;
                   return (
-                    <button 
-                      key={n} 
+                    <button
+                      key={n}
                       onClick={() => updateQuery({ page: n })}
                       className={`w-10 h-10 rounded-lg text-sm font-semibold ${n === filters.page ? 'bg-brand-primary text-white' : 'border border-gray-200 text-brand-text hover:border-brand-primary'}`}
                     >
@@ -264,7 +264,7 @@ export default function ExplorePage() {
                     </button>
                   );
                 })}
-                <button 
+                <button
                   onClick={() => updateQuery({ page: Math.min(pagination.pages, filters.page + 1) })}
                   disabled={filters.page === pagination.pages}
                   className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-brand-text hover:border-brand-primary disabled:opacity-50"
@@ -277,5 +277,13 @@ export default function ExplorePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ExplorePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-brand-bg" />}>
+      <ExploreContent />
+    </Suspense>
   );
 }

@@ -1,36 +1,138 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🌿 Rooted — Client
 
-## Getting Started
+**Rooted** is a modern, premium real-estate platform where users can buy, rent, and discover properties — with the help of **Sage**, an AI-powered assistant that understands natural language and helps users find exactly what they're looking for. This repository contains the **frontend (client-side)** application.
 
-First, run the development server:
+🔗 **Live Website:** [https://rooted-client.vercel.app/](https://rooted-client.vercel.app/)
+📦 **Frontend Repo:** [github.com/MahbubaSultanaEty/rooted-client](https://github.com/MahbubaSultanaEty/rooted-client)
+📦 **Backend Repo:** [github.com/MahbubaSultanaEty/rooted-server](https://github.com/MahbubaSultanaEty/rooted-server)
+
+---
+
+## ✨ Overview
+
+Rooted lets users search, filter, save, and inquire about real-estate listings through a fast, elegant interface — while **Sage**, the built-in AI chatbot, gives them a more conversational way to explore the platform. Instead of manually applying filters, users can simply describe what they want (e.g. *"Show me a 3-bedroom apartment in Dhaka under 50 lakh"*) and Sage interprets the request, suggests matching properties, and can answer general questions about listings, neighborhoods, pricing, or how the platform works.
+
+---
+
+## 🛠️ Tech Stack
+
+| Category | Technology |
+|---|---|
+| Framework | [Next.js](https://nextjs.org/) (App Router) |
+| Styling | Tailwind CSS + CSS Variables |
+| Icons | [lucide-react](https://lucide.dev/) |
+| Data Fetching & Caching | [@tanstack/react-query](https://tanstack.com/query) |
+| Authentication | `better-auth` client integration |
+| Notifications | `react-hot-toast` |
+| Deployment | Vercel |
+
+---
+
+## 🔑 Key Pages & Modules
+
+### 🏠 Landing Page (`/`)
+- **Hero Section** — instant property search with quick shortcuts.
+- **How It Works** — a 3-step guide to using the platform.
+- **Sage Preview** — a live preview of the AI assistant right on the homepage, inviting users to start a conversation.
+- **Explore by City** — browse properties from major cities (Dhaka, Chattogram, Sylhet, Rajshahi, etc.).
+
+### 🔍 Explore Page (`/explore`)
+- URL query-based, server-side filtering — search query, city, property type, bedrooms, and price range are synced directly with URL search params (shareable, bookmarkable searches).
+- Server-side pagination for browsing large result sets efficiently.
+
+### 🏡 Property Details Page (`/property/[id]`)
+- Dynamic data fetching using the property's ID or slug.
+- Full property gallery, key features (size, beds, baths, etc.), amenities list, and the current user's saved/bookmarked status.
+- Listing agent's name and email, with a direct contact button.
+
+### 🤖 Sage — AI Guide (`/sage`)
+Sage is Rooted's built-in AI assistant, offering a chat-style interface for natural-language property discovery and support:
+- **Conversational property search** — describe what you're looking for in plain language and get relevant suggestions back.
+- **Guidance & information** — ask general questions about the platform, listings, pricing, locations, or the buying/renting process.
+- **Context-aware responses** — Sage tailors suggestions based on the details provided during the conversation.
+- **Seamless handoff** — matching properties surfaced by Sage link directly to their full details page.
+
+### 👤 Profile & Admin (`/profile`)
+Role-aware profile page with two distinct views:
+- **Regular Users / Agents**
+  - View the status of their own listings (total & active count).
+  - Quick action to add a new property.
+  - Saved-properties grid, bookmarked locally via `localStorage` and updated in real time across the app.
+- **Admin Users**
+  - A privileges widget summarizing admin capabilities (user management, listing moderation, platform settings).
+  - A direct "Go to Admin Dashboard" action instead of listing-management shortcuts.
+
+### 🔐 Auth
+- Login / signup flows powered by `better-auth`.
+- Session-aware route protection (e.g. `/profile` redirects unauthenticated users to `/login`).
+
+---
+
+## 📦 Getting Started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Clone the repository
+git clone https://github.com/MahbubaSultanaEty/rooted-client.git
+cd rooted-client
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Environment variables (`.env.local`):**
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```bash
+# Run the development server
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 📁 Project Structure (high level)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+rooted-client/
+├── app/
+│   ├── page.js                # Landing page
+│   ├── explore/                # Explore & filtering
+│   ├── property/[id]/          # Property details
+│   ├── sage/                    # Sage AI assistant
+│   ├── profile/                  # User / Admin profile
+│   ├── login/                     # Auth pages
+│   └── admin/                      # Admin dashboard
+├── components/
+│   ├── PropertyCard.jsx
+│   └── ...
+├── lib/
+│   └── auth-client.js
+└── public/
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+##  Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The client is deployed on **Vercel**: [https://rooted-client.vercel.app/](https://rooted-client.vercel.app/)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+To deploy your own instance, connect the repository to Vercel and set the `NEXT_PUBLIC_API_URL` environment variable to your deployed backend URL.
+
+---
+
+## 🔗 Related
+
+- Backend / API: [`rooted-server`](https://github.com/MahbubaSultanaEty/rooted-server) (Node.js, Express, MongoDB)
+
+---
+
+## 👩‍💻 Author
+
+**Mahbuba Sultana**
+GitHub: [@MahbubaSultanaEty](https://github.com/MahbubaSultanaEty)

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signOut } from '@/lib/auth-client';
-import { User, Mail, ShieldCheck, LogOut, LoaderCircle, Home, CalendarDays, Bookmark } from 'lucide-react';
+import { User, Mail, ShieldCheck, LogOut, LoaderCircle, Home, CalendarDays, Bookmark, Sparkles, Users, Settings } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import PropertyCard from '@/components/PropertyCard';
@@ -19,13 +19,17 @@ export default function ProfilePage() {
   const [loggingOut, setLoggingOut] = useState(false);
   const [savedProps, setSavedProps] = useState([]);
 
+  const isAdmin = session?.user?.role === 'admin';
+
   useEffect(() => {
     if (isPending) return;
     if (!session) { router.push('/login'); return; }
-    fetchStats();
+    if (!isAdmin) fetchStats();
+    else setStatsLoading(false);
   }, [session, isPending]);
 
   useEffect(() => {
+    if (isAdmin) return; // admins don't need saved properties
     const loadSaved = () => {
       const saved = JSON.parse(localStorage.getItem('savedProperties') || '[]');
       setSavedProps(saved);
@@ -80,7 +84,9 @@ export default function ProfilePage() {
       <div className="max-w-3xl mx-auto px-4">
 
         {/* Page Title */}
-        <h1 className="font-heading text-3xl font-bold text-brand-text mb-8">My Profile</h1>
+        <h1 className="font-heading text-3xl font-bold text-brand-text mb-8">
+          {isAdmin ? 'Admin Profile' : 'My Profile'}
+        </h1>
 
         {/* Profile Card */}
         <div className="glass-card p-8 bg-white/80 mb-6">
@@ -103,7 +109,7 @@ export default function ProfilePage() {
                   <CalendarDays className="w-4 h-4" /> Joined {joinedDate}
                 </span>
               </div>
-              {user?.role === 'admin' && (
+              {isAdmin && (
                 <span className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full bg-brand-primary/10 text-brand-primary text-xs font-semibold">
                   <ShieldCheck className="w-3.5 h-3.5" /> Admin
                 </span>
@@ -112,74 +118,129 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="glass-card p-6 bg-white/80 text-center">
-            <Home className="w-7 h-7 text-brand-primary mx-auto mb-2" />
-            <p className="font-heading text-3xl font-bold text-brand-text">
-              {statsLoading ? '—' : stats.total}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">Total Listings</p>
-          </div>
-          <div className="glass-card p-6 bg-white/80 text-center">
-            <ShieldCheck className="w-7 h-7 text-green-500 mx-auto mb-2" />
-            <p className="font-heading text-3xl font-bold text-brand-text">
-              {statsLoading ? '—' : stats.active}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">Active Listings</p>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="glass-card p-6 bg-white/80 space-y-3">
-          <h3 className="font-heading font-bold text-brand-text mb-4">Quick Actions</h3>
-
-          <Link href="/items/manage" className="flex items-center gap-3 w-full px-5 py-3.5 rounded-xl border border-gray-200 hover:border-brand-primary/40 hover:bg-brand-primary/5 transition-all group">
-            <Home className="w-5 h-5 text-brand-primary" />
-            <span className="font-semibold text-brand-text group-hover:text-brand-primary transition-colors">Manage My Listings</span>
-          </Link>
-
-          <Link href="/items/add" className="flex items-center gap-3 w-full px-5 py-3.5 rounded-xl border border-gray-200 hover:border-brand-primary/40 hover:bg-brand-primary/5 transition-all group">
-            <User className="w-5 h-5 text-brand-accent" />
-            <span className="font-semibold text-brand-text group-hover:text-brand-accent transition-colors">Add New Property</span>
-          </Link>
-
-          {user?.role === 'admin' && (
-            <Link href="/admin" className="flex items-center gap-3 w-full px-5 py-3.5 rounded-xl border border-brand-primary/30 bg-brand-primary/5 hover:bg-brand-primary/10 transition-all group">
-              <ShieldCheck className="w-5 h-5 text-brand-primary" />
-              <span className="font-semibold text-brand-primary">Admin Dashboard</span>
-            </Link>
-          )}
-
-          <button
-            onClick={handleLogout}
-            disabled={loggingOut}
-            className="flex items-center gap-3 w-full px-5 py-3.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-all font-semibold disabled:opacity-60"
-          >
-            <LogOut className="w-5 h-5" />
-            {loggingOut ? 'Logging out...' : 'Logout'}
-          </button>
-        </div>
-
-        {/* Saved Properties */}
-        <div className="glass-card p-6 bg-white/80 mt-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Bookmark className="w-5 h-5 text-brand-primary" />
-            <h3 className="font-heading font-bold text-brand-text">Saved Properties</h3>
-          </div>
-          {savedProps.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {savedProps.map(prop => <PropertyCard key={prop._id} property={prop} />)}
+        {isAdmin ? (
+          <>
+            {/* Admin Powers - Static Content */}
+            <div className="glass-card p-6 bg-white/80 mb-6">
+              <h3 className="font-heading font-bold text-brand-text mb-4 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-brand-primary" /> Admin Privileges
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex items-start gap-3 p-4 rounded-xl border border-gray-200 bg-brand-bg">
+                  <Users className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-brand-text text-sm">Manage Users</p>
+                    <p className="text-gray-500 text-xs mt-1">View, edit, and moderate user accounts across the platform.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-4 rounded-xl border border-gray-200 bg-brand-bg">
+                  <Home className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-brand-text text-sm">Manage Listings</p>
+                    <p className="text-gray-500 text-xs mt-1">Approve, edit, or remove any property listing on the site.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-4 rounded-xl border border-gray-200 bg-brand-bg">
+                  <ShieldCheck className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-brand-text text-sm">Platform Moderation</p>
+                    <p className="text-gray-500 text-xs mt-1">Enforce policies and resolve reported content or disputes.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-4 rounded-xl border border-gray-200 bg-brand-bg">
+                  <Settings className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-brand-text text-sm">System Settings</p>
+                    <p className="text-gray-500 text-xs mt-1">Configure platform-wide settings and preferences.</p>
+                  </div>
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="text-center py-6 bg-brand-bg rounded-xl border border-dashed border-gray-200">
-              <p className="text-gray-500 text-sm">You haven't saved any properties yet.</p>
-              <Link href="/explore" className="text-brand-primary text-sm font-semibold hover:underline mt-2 inline-block">
-                Explore Homes
+
+            {/* Admin Actions */}
+            <div className="glass-card p-6 bg-white/80 space-y-3">
+              <h3 className="font-heading font-bold text-brand-text mb-4">Actions</h3>
+
+              <Link href="/admin" className="flex items-center gap-3 w-full px-5 py-3.5 rounded-xl border border-brand-primary/30 bg-brand-primary/5 hover:bg-brand-primary/10 transition-all group">
+                <ShieldCheck className="w-5 h-5 text-brand-primary" />
+                <span className="font-semibold text-brand-primary">Go to Admin Dashboard</span>
               </Link>
+
+              <button
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="flex items-center gap-3 w-full px-5 py-3.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-all font-semibold disabled:opacity-60"
+              >
+                <LogOut className="w-5 h-5" />
+                {loggingOut ? 'Logging out...' : 'Logout'}
+              </button>
             </div>
-          )}
-        </div>
+          </>
+        ) : (
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="glass-card p-6 bg-white/80 text-center">
+                <Home className="w-7 h-7 text-brand-primary mx-auto mb-2" />
+                <p className="font-heading text-3xl font-bold text-brand-text">
+                  {statsLoading ? '—' : stats.total}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">Total Listings</p>
+              </div>
+              <div className="glass-card p-6 bg-white/80 text-center">
+                <ShieldCheck className="w-7 h-7 text-green-500 mx-auto mb-2" />
+                <p className="font-heading text-3xl font-bold text-brand-text">
+                  {statsLoading ? '—' : stats.active}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">Active Listings</p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="glass-card p-6 bg-white/80 space-y-3">
+              <h3 className="font-heading font-bold text-brand-text mb-4">Quick Actions</h3>
+
+              <Link href="/items/manage" className="flex items-center gap-3 w-full px-5 py-3.5 rounded-xl border border-gray-200 hover:border-brand-primary/40 hover:bg-brand-primary/5 transition-all group">
+                <Home className="w-5 h-5 text-brand-primary" />
+                <span className="font-semibold text-brand-text group-hover:text-brand-primary transition-colors">Manage My Listings</span>
+              </Link>
+
+              <Link href="/items/add" className="flex items-center gap-3 w-full px-5 py-3.5 rounded-xl border border-gray-200 hover:border-brand-primary/40 hover:bg-brand-primary/5 transition-all group">
+                <User className="w-5 h-5 text-brand-accent" />
+                <span className="font-semibold text-brand-text group-hover:text-brand-accent transition-colors">Add New Property</span>
+              </Link>
+
+              <button
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="flex items-center gap-3 w-full px-5 py-3.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-all font-semibold disabled:opacity-60"
+              >
+                <LogOut className="w-5 h-5" />
+                {loggingOut ? 'Logging out...' : 'Logout'}
+              </button>
+            </div>
+
+            {/* Saved Properties */}
+            <div className="glass-card p-6 bg-white/80 mt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Bookmark className="w-5 h-5 text-brand-primary" />
+                <h3 className="font-heading font-bold text-brand-text">Saved Properties</h3>
+              </div>
+              {savedProps.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {savedProps.map(prop => <PropertyCard key={prop._id} property={prop} />)}
+                </div>
+              ) : (
+                <div className="text-center py-6 bg-brand-bg rounded-xl border border-dashed border-gray-200">
+                  <p className="text-gray-500 text-sm">You haven't saved any properties yet.</p>
+                  <Link href="/explore" className="text-brand-primary text-sm font-semibold hover:underline mt-2 inline-block">
+                    Explore Homes
+                  </Link>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
