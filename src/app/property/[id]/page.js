@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import PropertyCard from '@/components/PropertyCard';
@@ -23,6 +23,28 @@ export default function PropertyDetailPage() {
   const id = params.id;
   const [selectedImage, setSelectedImage] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      const saved = JSON.parse(localStorage.getItem('savedProperties') || '[]');
+      setIsSaved(saved.some(p => p._id === id || p.slug === id));
+    }
+  }, [id]);
+
+  const toggleSave = () => {
+    if (!data?.data) return;
+    const property = data.data;
+    const saved = JSON.parse(localStorage.getItem('savedProperties') || '[]');
+    let newSaved;
+    if (isSaved) {
+      newSaved = saved.filter(p => p._id !== property._id);
+    } else {
+      newSaved = [...saved, property];
+    }
+    localStorage.setItem('savedProperties', JSON.stringify(newSaved));
+    setIsSaved(!isSaved);
+    window.dispatchEvent(new Event('savedPropertiesUpdated'));
+  };
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['property', id],
@@ -214,7 +236,7 @@ export default function PropertyDetailPage() {
                   </a>
                 </div>
                 <button
-                  onClick={() => setIsSaved(!isSaved)}
+                  onClick={toggleSave}
                   className={`w-full py-3.5 font-bold rounded-xl transition-all flex items-center justify-center gap-2 border ${isSaved ? 'bg-brand-primary text-white border-brand-primary' : 'bg-white text-brand-text border-gray-200 hover:border-brand-primary'}`}
                 >
                   <Bookmark className="w-4 h-4" fill={isSaved ? 'currentColor' : 'none'} />

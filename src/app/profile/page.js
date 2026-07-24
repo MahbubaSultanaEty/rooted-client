@@ -6,6 +6,7 @@ import { useSession, signOut } from '@/lib/auth-client';
 import { User, Mail, ShieldCheck, LogOut, LoaderCircle, Home, CalendarDays, Bookmark } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import PropertyCard from '@/components/PropertyCard';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -16,12 +17,23 @@ export default function ProfilePage() {
   const [stats, setStats] = useState({ total: 0, active: 0 });
   const [statsLoading, setStatsLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [savedProps, setSavedProps] = useState([]);
 
   useEffect(() => {
     if (isPending) return;
     if (!session) { router.push('/login'); return; }
     fetchStats();
   }, [session, isPending]);
+
+  useEffect(() => {
+    const loadSaved = () => {
+      const saved = JSON.parse(localStorage.getItem('savedProperties') || '[]');
+      setSavedProps(saved);
+    };
+    loadSaved();
+    window.addEventListener('savedPropertiesUpdated', loadSaved);
+    return () => window.removeEventListener('savedPropertiesUpdated', loadSaved);
+  }, []);
 
   const fetchStats = async () => {
     try {
@@ -149,18 +161,24 @@ export default function ProfilePage() {
           </button>
         </div>
 
-        {/* Saved Properties (Minimal Mock) */}
+        {/* Saved Properties */}
         <div className="glass-card p-6 bg-white/80 mt-6">
           <div className="flex items-center gap-2 mb-4">
             <Bookmark className="w-5 h-5 text-brand-primary" />
             <h3 className="font-heading font-bold text-brand-text">Saved Properties</h3>
           </div>
-          <div className="text-center py-6 bg-brand-bg rounded-xl border border-dashed border-gray-200">
-            <p className="text-gray-500 text-sm">You haven't saved any properties yet.</p>
-            <Link href="/explore" className="text-brand-primary text-sm font-semibold hover:underline mt-2 inline-block">
-              Explore Homes
-            </Link>
-          </div>
+          {savedProps.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {savedProps.map(prop => <PropertyCard key={prop._id} property={prop} />)}
+            </div>
+          ) : (
+            <div className="text-center py-6 bg-brand-bg rounded-xl border border-dashed border-gray-200">
+              <p className="text-gray-500 text-sm">You haven't saved any properties yet.</p>
+              <Link href="/explore" className="text-brand-primary text-sm font-semibold hover:underline mt-2 inline-block">
+                Explore Homes
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -2,10 +2,29 @@
 
 import Link from 'next/link';
 import { Bookmark, MapPin, Bed, Maximize, Sparkles } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function PropertyCard({ property, aiMatchScore = null }) {
-  const [isSaved, setIsSaved] = useState(false); // In real app, sync with user profile
+  const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem('savedProperties') || '[]');
+    setIsSaved(saved.some(p => p._id === property._id));
+  }, [property._id]);
+
+  const toggleSave = (e) => {
+    e.preventDefault();
+    const saved = JSON.parse(localStorage.getItem('savedProperties') || '[]');
+    let newSaved;
+    if (isSaved) {
+      newSaved = saved.filter(p => p._id !== property._id);
+    } else {
+      newSaved = [...saved, property];
+    }
+    localStorage.setItem('savedProperties', JSON.stringify(newSaved));
+    setIsSaved(!isSaved);
+    window.dispatchEvent(new Event('savedPropertiesUpdated'));
+  };
 
   const fallbackImage = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
   const displayImage = property.images?.[0] || fallbackImage;
@@ -23,10 +42,7 @@ export default function PropertyCard({ property, aiMatchScore = null }) {
 
       {/* Save Button */}
       <button 
-        onClick={(e) => {
-          e.preventDefault();
-          setIsSaved(!isSaved);
-        }}
+        onClick={toggleSave}
         className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white text-brand-primary transition-all shadow-sm"
       >
         <Bookmark className="w-4 h-4" fill={isSaved ? "currentColor" : "none"} />
