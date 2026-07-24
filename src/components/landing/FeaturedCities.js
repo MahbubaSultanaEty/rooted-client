@@ -6,13 +6,13 @@ const CITIES = [
   {
     name: 'Dhaka',
     properties: '12,500+',
-    image: 'https://images.unsplash.com/photo-1603504896791-0c58eb091bd3?w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1590608897129-79da98d15969?w=800&q=80',
     colSpan: 'md:col-span-2 md:row-span-2'
   },
   {
     name: 'Chittagong',
     properties: '4,200+',
-    image: 'https://images.unsplash.com/photo-1579738029013-4482c3f87372?w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1616190419596-e2839e7380d7?w=800&q=80',
     colSpan: 'md:col-span-1 md:row-span-1'
   },
   {
