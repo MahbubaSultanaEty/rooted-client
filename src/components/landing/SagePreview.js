@@ -32,7 +32,7 @@ export default function SagePreview() {
               </li>
             </ul>
             <Link 
-              href="/explore" 
+              href="/sage" 
               className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand-primary font-semibold rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-brand-primary/30 transition-all group"
             >
               Try Sage Now
